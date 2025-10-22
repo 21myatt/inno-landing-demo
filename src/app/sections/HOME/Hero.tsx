@@ -60,16 +60,24 @@ export default function Hero() {
           </p>
 
           <div className="flex flex-wrap gap-4">
-            <button className="group bg-gradient-to-r from-amber-500 to-orange-500 px-8 py-4 rounded-2xl font-bold text-lg text-black hover:scale-105 transition shadow-amber-500/30 shadow-lg">
-              <span className="flex items-center gap-2">
-                {t.hero.ctaPrimary}
-                <ArrowRight className="group-hover:translate-x-2 transition-transform" />
-              </span>
-            </button>
+            <a
+              href="http://hub.innohouse.org/"
+              target="_blank"
+              rel="noopener noreferrer"
+            >
+              <button className="group bg-gradient-to-r from-amber-500 to-orange-500 px-8 py-4 rounded-2xl font-bold text-lg text-black hover:scale-105 transition shadow-amber-500/30 shadow-lg">
+                <span className="flex items-center gap-2">
+                  {t.hero.ctaPrimary}
+                  <ArrowRight className="group-hover:translate-x-2 transition-transform" />
+                </span>
+              </button>
+            </a>
 
-            <button className="px-8 py-4 rounded-2xl font-bold text-lg bg-white/5 border border-white/10 hover:bg-white/10 transition">
-              {t.hero.ctaSecondary}
-            </button>
+            <a href="#courses">
+              <button className="px-8 py-4 rounded-2xl font-bold text-lg bg-white/5 border border-white/10 hover:bg-white/10 transition">
+                {t.hero.ctaSecondary}
+              </button>
+            </a>
           </div>
 
           <div className="flex items-center gap-8 pt-6">

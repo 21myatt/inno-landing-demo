@@ -10,7 +10,7 @@ export default function Stats() {
   const { counts, ref } = useCountUp({
     students: 100,
     graduates: 50,
-    batches: 4,
+    batches: 3,
   });
 
   return (

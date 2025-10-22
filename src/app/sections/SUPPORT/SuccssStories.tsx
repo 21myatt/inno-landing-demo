@@ -29,9 +29,9 @@ const SuccssStories = () => {
               </div>
             </div>
             <p className="text-slate-300 leading-relaxed mb-4">
-              "Before Inno House, I had no computer skills. Now I design logos
+              Before Inno House, I had no computer skills. Now I design logos
               and social media content for local businesses. The free courses
-              and patient instructors changed everything for me."
+              and patient instructors changed everything for me.
             </p>
             <div className="flex gap-2">
               {[...Array(5)].map((_, i) => (
@@ -50,14 +50,14 @@ const SuccssStories = () => {
               <div>
                 <h4 className="font-bold text-xl">Mg Thaung</h4>
                 <p className="text-sm text-slate-500">
-                  Graphic Design Graduate
+                  Web Development Graduate
                 </p>
               </div>
             </div>
             <p className="text-slate-300 leading-relaxed mb-4">
-              "Inno House provided everything—laptops, software, and mentorship.
+              Inno House provided everything—laptops, software, and mentorship.
               I learned on Zoom when I couldn't visit, and practiced at the
-              center when I could. Now I have real job opportunities."
+              center when I could. Now I have real job opportunities.
             </p>
             <div className="flex gap-2">
               {[...Array(5)].map((_, i) => (

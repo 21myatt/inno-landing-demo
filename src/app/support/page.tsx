@@ -12,7 +12,6 @@ import {
   Calendar,
   MessageCircle,
   Mail,
-  Facebook,
   Phone,
   Globe,
   Sparkles,
@@ -28,6 +27,7 @@ import SuccssStories from "../sections/SUPPORT/SuccssStories";
 import Footer from "../sections/HOME/Footer";
 import Booking from "../sections/SUPPORT/Booking";
 import PhotoCollage from "../sections/SUPPORT/PhotoCollage";
+import NavEng from "../sections/HOME/NavEng";
 
 export default function support() {
   const [scrollY, setScrollY] = useState(0);
@@ -48,14 +48,25 @@ export default function support() {
 
   return (
     <div className="bg-black text-white overflow-hidden">
-      <Navbar />
+      {/* <Navbar /> */}
+      <NavEng />
       <Hero2 />
       <OurStory />
       <ProblemState />
       <ImpactArea />
       <SuccssStories />
       <PhotoCollage />
-      <Booking />
+      <Booking
+        title="Let's Connect"
+        highlight="Connect"
+        description="We'd love to discuss how you can support our mission..."
+        bullets={[
+          "30-minute intro call",
+          "Learn about our programs",
+          "Discuss partnership options",
+        ]}
+      />
+
       <Footer />
     </div>
   );

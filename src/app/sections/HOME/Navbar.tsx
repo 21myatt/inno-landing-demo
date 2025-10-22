@@ -1,9 +1,11 @@
 "use client";
 
 import Link from "next/link";
+import Image from "next/image";
 import { useState } from "react";
 import { Menu, X, Languages } from "lucide-react";
 import { useLang } from "@/app/context/LangContext";
+import logo from "@/assets/logo.png";
 
 export default function Navbar() {
   const { lang, setLang, t } = useLang();
@@ -11,14 +13,19 @@ export default function Navbar() {
 
   const toggleLang = () => setLang(lang === "mm" ? "en" : "mm");
 
-  const enrollUrl = "https://example.com/enroll-form"; // TEMP dummy URL
+  const enrollUrl = "http://hub.innohouse.org/"; // TEMP dummy URL
 
   return (
     <nav className="fixed top-0 left-0 right-0 z-50 bg-black/60 backdrop-blur-md border-b border-white/10">
       <div className="max-w-7xl mx-auto px-6 py-4 flex items-center justify-between">
         {/* Logo */}
-        <Link href="/" className="font-bold text-xl text-white">
-          Inno House
+        <Link href="/" className="flex items-center">
+          <Image
+            src={logo}
+            alt="Inno House Logo"
+            className="h-12 w-auto"
+            priority
+          />
         </Link>
 
         {/* Desktop Menu */}

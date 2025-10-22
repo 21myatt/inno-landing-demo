@@ -32,7 +32,7 @@ const PhotoCollage = () => {
       caption: "Design Session",
     },
     {
-      url: "https://media.giphy.com/media/13HgwGsXF0aiGY/giphy.gif",
+      url: "/play.gif",
       type: "image/gif",
       size: "small",
       caption: "Creativity in Action",
@@ -42,12 +42,6 @@ const PhotoCollage = () => {
       type: "image/png",
       size: "medium",
       caption: "Graduation Day",
-    },
-    {
-      url: "https://commondatastorage.googleapis.com/gtv-videos-bucket/sample/ForBiggerBlazes.mp4",
-      type: "video/webm",
-      size: "large",
-      caption: "Campus Tour Video",
     },
     {
       url: "https://images.unsplash.com/photo-1543269865-cbf427effbad?w=600",

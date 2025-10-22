@@ -38,7 +38,7 @@ export const translations = {
       benefit2: {
         title: "အနာဂတ်အာမခံ အသက်မွေးဝမ်း",
         description: "AIက သင့်ဆီမလာခင် သင်က AI ဆီရောက်အောင်သွားပါ။",
-        stat: "Future-Proof Career",
+        stat: "အာမခံ",
       },
       benefit3: {
         title: "ပိုမိုကောင်းမွန်သော ဝင်ငွေ",
@@ -87,7 +87,7 @@ export const translations = {
     },
     testimonialsSection: {
       title: "ကျောင်းသား/သူများ",
-      titleHighlight: "ဘာပြောကျလဲ",
+      titleHighlight: "ဘာပြောကြလဲ",
       subtitle:
         "ကျောင်းသား/သူဟောင်းများရဲ့ စိတ်ကျေနပ်ဖွယ်ရလဒ်များကို ကြည့်ကျရအောင်",
       batch: "အစု",
@@ -107,7 +107,7 @@ export const translations = {
       title2: "စတင်လိုက်ပါ",
       subtitle: "သင့်ရဲ့အားလပ်ချိန်တွေကို အနာဂတ်အတွက်ရင်းနှီးမြှပ်နှံလိုက်ပါ",
       ctaPrimary: "အခုပဲ အခမဲ့စာရင်းသွင်းပါ",
-      ctaSecondary: "ပူးပေါင်းကူညီမည်",
+      ctaSecondary: "ပံ့ပိုးကူညီမည်",
     },
   },
   en: {

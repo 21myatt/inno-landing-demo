@@ -2,6 +2,7 @@
 
 import { ArrowRight, Heart, Phone, Mail, Facebook } from "lucide-react";
 import { useLang } from "@/app/context/LangContext";
+import Link from "next/link";
 
 export default function FinalCTA() {
   const { t, lang } = useLang();
@@ -52,14 +53,14 @@ export default function FinalCTA() {
           </a>
 
           {/* Secondary CTA */}
-          <a
-            href={SUPPORT_URL}
+          <Link
+            href="/support"
             target="_blank"
             className="group px-12 py-6 rounded-2xl font-bold  bg-white/5 backdrop-blur-sm border-2 border-white/10 hover:bg-white/10 hover:border-purple-500/50 transition-all duration-300 flex items-center justify-center gap-3"
           >
             <Heart size={24} />
             {t.ctaSection.ctaSecondary}
-          </a>
+          </Link>
         </div>
 
         {/* Contact Links */}
