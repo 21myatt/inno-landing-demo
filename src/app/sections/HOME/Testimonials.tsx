@@ -1,6 +1,6 @@
 "use client";
 
-import { testimonials } from "@/app/lib/testimonials";
+import { testimonials } from "@/lib/testimonials";
 import { useLang } from "@/app/context/LangContext";
 import { Quote, Star } from "lucide-react";
 

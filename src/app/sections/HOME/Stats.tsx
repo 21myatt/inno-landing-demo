@@ -1,7 +1,7 @@
 "use client";
 
 import { useLang } from "@/app/context/LangContext";
-import useCountUp from "@/app/lib/useCountUp";
+import useCountUp from "@/lib/useCountUp";
 
 export default function Stats() {
   const { t, lang } = useLang();

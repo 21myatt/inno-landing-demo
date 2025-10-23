@@ -7,7 +7,7 @@ import {
   useState,
   ReactNode,
 } from "react";
-import { Lang, translations } from "@/app/lib/translations";
+import { Lang, translations } from "@/lib/translations";
 
 interface LangContextType {
   lang: Lang;
