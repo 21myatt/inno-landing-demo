@@ -16,6 +16,8 @@ export default function QRScanner() {
   const videoRef = useRef<HTMLVideoElement | null>(null);
   const controlsRef = useRef<IScannerControls | null>(null);
   const canvasRef = useRef<HTMLCanvasElement | null>(null);
+  const allowedEntriesRef = useRef<Map<string, string>>(new Map());
+  const dataReadyRef = useRef(false);
 
   const streamStoppedRef = useRef(false);
   const autoResetTimerRef = useRef<number | null>(null);
@@ -30,6 +32,10 @@ export default function QRScanner() {
   const [frozenFrameUrl, setFrozenFrameUrl] = useState<string | null>(null);
   const [autoResetMs, setAutoResetMs] = useState<number>(AUTO_RESET_MS_DEFAULT);
   const [countdownMs, setCountdownMs] = useState<number | null>(null);
+  const [validationStatus, setValidationStatus] = useState<
+    "idle" | "valid" | "invalid"
+  >("idle");
+  const [matchedName, setMatchedName] = useState<string | null>(null);
 
   // --- helpers ---
   const addDebug = (message: string) => {
@@ -97,6 +103,13 @@ export default function QRScanner() {
     }
   };
 
+  const normalizeValue = (value: string) =>
+    value
+      .replace(/[\r\n]+/g, " ")
+      .replace(/\s+/g, " ")
+      .trim()
+      .toLowerCase();
+
   const startAutoReset = () => {
     setCountdownMs(autoResetMs);
     clearTimers();
@@ -111,6 +124,146 @@ export default function QRScanner() {
       resetScanner();
     }, autoResetMs);
   };
+
+  const stripQuotes = (value: string) => value.replace(/^["']+|["']+$/g, "");
+
+  const processDetection = (text: string, ctrls?: IScannerControls | null) => {
+    addDebug(`Detected QR: ${text}`);
+
+    const normalizedFull = normalizeValue(stripQuotes(text));
+    const entries = allowedEntriesRef.current;
+    const candidates: string[] = [normalizedFull];
+
+    const registrationMatch = text.match(
+      /^Yes[, ]*Registered\.?\s*(.+?)\s+has\s+checked\s+in\.?$/i
+    );
+    if (registrationMatch?.[1]) {
+      candidates.push(normalizeValue(stripQuotes(registrationMatch[1])));
+    } else {
+      const simplified = text
+        .replace(/^Yes[, ]*Registered\.?/i, "")
+        .replace(/has\s+checked\s+in\.?$/i, "");
+      const extracted = normalizeValue(stripQuotes(simplified));
+      if (extracted) candidates.push(extracted);
+    }
+
+    let canonicalName: string | null = null;
+    for (const candidate of candidates) {
+      if (!candidate) continue;
+      const found = entries.get(candidate);
+      if (found) {
+        canonicalName = found;
+        break;
+      }
+    }
+
+    if (!canonicalName) {
+      for (const [normalizedName, originalName] of entries.entries()) {
+        if (
+          normalizedName &&
+          (normalizedFull === normalizedName ||
+            normalizedFull.includes(normalizedName))
+        ) {
+          canonicalName = originalName;
+          break;
+        }
+      }
+    }
+
+    const dataReady = dataReadyRef.current;
+    const isValid = dataReady && Boolean(canonicalName);
+
+    if (!dataReady) {
+      addDebug("Validation data not ready when QR was scanned");
+    } else if (isValid && canonicalName) {
+      addDebug(`QR name found in data.json: ${canonicalName}`);
+    } else {
+      addDebug("QR name not found");
+    }
+
+    const url = captureCurrentFrame();
+    if (url) setFrozenFrameUrl(url);
+
+    setMatchedName(isValid ? canonicalName : null);
+    setValidationStatus(isValid ? "valid" : dataReady ? "invalid" : "idle");
+
+    // === POST TO SHEET2 WHEN VALID ===
+    if (isValid && canonicalName) {
+      const formPayload = new FormData();
+      formPayload.append("target", "sheet2");
+      formPayload.append("name", canonicalName);
+      formPayload.append("rawValue", text);
+      formPayload.append("timestamp", new Date().toISOString());
+
+      fetch(
+        "https://script.google.com/macros/s/AKfycbwm69qHhRFMtX1YGtReSB0-oAjDMFT0mQPQmI1zr4niZ3V28AssO98sW7TyNHJ-GTXZ/exec",
+        {
+          method: "POST",
+          mode: "no-cors",
+          body: formPayload,
+        }
+      )
+        .then(() => addDebug("Posted to Sheet2"))
+        .catch((err) => addDebug("POST Sheet2 failed: " + String(err)));
+    }
+
+    setDetected({ rawValue: text, format: "qr_code" });
+
+    try {
+      ctrls?.stop();
+    } catch {}
+    controlsRef.current = null;
+    stopStream();
+
+    startAutoReset();
+  };
+
+  useEffect(() => {
+    let cancelled = false;
+
+    const loadData = async () => {
+      try {
+        const response = await fetch("/data.json", { cache: "no-store" });
+        if (!response.ok) {
+          throw new Error(`Request failed with status ${response.status}`);
+        }
+        const payload = await response.json();
+        if (cancelled) return;
+
+        const entries = new Map<string, string>();
+        if (Array.isArray(payload)) {
+          payload.forEach((item) => {
+            if (!item || typeof item !== "object") return;
+            const record = item as Record<string, unknown>;
+            const candidate = record.Name ?? record.name;
+            if (typeof candidate === "string") {
+              const normalized = normalizeValue(candidate);
+              if (normalized) {
+                entries.set(normalized, candidate.trim());
+              }
+            }
+          });
+        }
+
+        allowedEntriesRef.current = entries;
+        dataReadyRef.current = entries.size > 0;
+        addDebug(`Loaded ${entries.size} names from data.json for validation`);
+      } catch (err) {
+        if (!cancelled) {
+          addDebug("Unable to load data.json for validation");
+          allowedEntriesRef.current = new Map();
+          dataReadyRef.current = false;
+        }
+      }
+    };
+
+    loadData();
+
+    return () => {
+      cancelled = true;
+    };
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
 
   // --- ZXing setup ---
   useEffect(() => {
@@ -147,24 +300,7 @@ export default function QRScanner() {
 
             if (result) {
               const text = result.getText?.() ?? String(result);
-              addDebug(`Detected QR: ${text}`);
-
-              // 1) Freeze current frame BEFORE stopping stream
-              const url = captureCurrentFrame();
-              if (url) setFrozenFrameUrl(url);
-
-              // 2) Update state
-              setDetected({ rawValue: text, format: "qr_code" });
-
-              // 3) Stop scanning & camera
-              try {
-                ctrls?.stop();
-              } catch {}
-              controlsRef.current = null;
-              stopStream();
-
-              // 4) Start auto-reset countdown (visible)
-              startAutoReset();
+              processDetection(text, ctrls);
             }
           }
         );
@@ -220,6 +356,8 @@ export default function QRScanner() {
     setDetected(null);
     setFrozenFrameUrl(null);
     setCountdownMs(null);
+    setValidationStatus("idle");
+    setMatchedName(null);
     streamStoppedRef.current = false;
 
     try {
@@ -240,20 +378,7 @@ export default function QRScanner() {
         (result, err, ctrls) => {
           if (result) {
             const text = result.getText?.() ?? String(result);
-            addDebug(`Detected QR: ${text}`);
-
-            const url = captureCurrentFrame();
-            if (url) setFrozenFrameUrl(url);
-
-            setDetected({ rawValue: text, format: "qr_code" });
-
-            try {
-              ctrls?.stop();
-            } catch {}
-            controlsRef.current = null;
-            stopStream();
-
-            startAutoReset();
+            processDetection(text, ctrls);
           }
         }
       );
@@ -278,10 +403,14 @@ export default function QRScanner() {
   };
 
   const instructionText =
-    detected?.rawValue ??
-    (scannerReady === false
-      ? "QR detection is not supported on this device"
-      : "Align the QR code within the frame");
+    validationStatus === "invalid"
+      ? "Invalid QR Code"
+      : validationStatus === "valid" && matchedName
+      ? `Yes, Registered. ${matchedName} has checked in.`
+      : detected?.rawValue ??
+        (scannerReady === false
+          ? "QR detection is not supported on this device"
+          : "Align the QR code within the frame");
 
   return (
     <div className="relative flex min-h-dvh w-full items-center justify-center bg-black text-white">
@@ -317,6 +446,23 @@ export default function QRScanner() {
       <div className="pointer-events-none absolute inset-0 flex items-center justify-center">
         <div className="aspect-square w-3/4 max-w-sm border border-white/50" />
       </div>
+
+      {/* VALIDATION OVERLAY */}
+      {validationStatus === "valid" && (
+        <div className="pointer-events-none absolute inset-0 z-30 flex items-center justify-center">
+          <div className="flex items-center gap-3 rounded-full bg-sky-500/90 px-6 py-4 text-lg font-semibold text-white shadow-xl">
+            <span className="text-3xl leading-none">✓</span>
+            <div className="flex flex-col">
+              <span>Verified</span>
+              {matchedName && (
+                <span className="text-sm font-normal text-white/90">
+                  {matchedName}
+                </span>
+              )}
+            </div>
+          </div>
+        </div>
+      )}
 
       {/* BOTTOM AREA (RESET + INSTRUCTION) */}
       <div className="absolute inset-x-0 bottom-8 flex justify-center px-6">
